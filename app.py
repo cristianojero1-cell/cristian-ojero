@@ -2,69 +2,67 @@ from flask import Flask, jsonify, request, render_template_string, redirect, url
 
 app = Flask(__name__)
 
-# Sample in-memory data
+# Sample data
 students = [
     {"id": 1, "name": "Cristian", "grade": 85, "section": "Firebase"},
     {"id": 2, "name": "Chalzy", "grade": 90, "section": "Firebase"}
 ]
 
-# Home page
+# Home route
 @app.route('/')
 def home():
     return redirect(url_for('list_students'))
 
-# -----------------------------
-# Show all students
-# -----------------------------
+# View students
 @app.route('/students')
 def list_students():
     html = """
     <h2>Student List</h2>
 
-    <a href="/add_student_form">Add New Student</a>
+    <a href="/add_student_form">Add Student</a>
     <br><br>
 
     <ul>
     {% for s in students %}
         <li>
-        ID: {{s.id}} - {{s.name}}
-        (Grade: {{s.grade}}, Section: {{s.section}})
-        [<a href="/edit_student/{{s.id}}">Edit</a>]
+        {{s["id"]}} - {{s["name"]}} (Grade: {{s["grade"]}}, Section: {{s["section"]}})
+        <a href="/edit_student/{{s['id']}}">Edit</a>
         </li>
     {% endfor %}
     </ul>
     """
     return render_template_string(html, students=students)
 
-# -----------------------------
-# Add Student Form
-# -----------------------------
+# Add student form
 @app.route('/add_student_form')
 def add_student_form():
     html = """
-    <h2>Add New Student</h2>
+    <h2>Add Student</h2>
 
     <form action="/add_student" method="POST">
-        Name: <input type="text" name="name" required><br><br>
-        Grade: <input type="number" name="grade" required><br><br>
-        Section: <input type="text" name="section" required><br><br>
+        Name:<br>
+        <input type="text" name="name"><br><br>
 
-        <input type="submit" value="Add Student">
+        Grade:<br>
+        <input type="number" name="grade"><br><br>
+
+        Section:<br>
+        <input type="text" name="section"><br><br>
+
+        <button type="submit">Add</button>
     </form>
 
     <br>
-    <a href="/students">Back to List</a>
+    <a href="/students">Back</a>
     """
     return render_template_string(html)
 
-# -----------------------------
-# Add Student (POST)
-# -----------------------------
+# Add student
 @app.route('/add_student', methods=['POST'])
 def add_student():
 
     name = request.form.get("name")
-    grade = int(request.form.get("grade"))
+    grade = request.form.get("grade")
     section = request.form.get("section")
 
     new_id = len(students) + 1
@@ -72,7 +70,7 @@ def add_student():
     new_student = {
         "id": new_id,
         "name": name,
-        "grade": grade,
+        "grade": int(grade),
         "section": section
     }
 
@@ -80,16 +78,14 @@ def add_student():
 
     return redirect(url_for('list_students'))
 
-# -----------------------------
-# Edit Student
-# -----------------------------
+# Edit student
 @app.route('/edit_student/<int:id>', methods=['GET', 'POST'])
 def edit_student(id):
 
     student = next((s for s in students if s["id"] == id), None)
 
-    if not student:
-        return "Student not found", 404
+    if student is None:
+        return "Student not found"
 
     if request.method == "POST":
         student["name"] = request.form["name"]
@@ -102,15 +98,20 @@ def edit_student(id):
     <h2>Edit Student</h2>
 
     <form method="POST">
-        Name: <input type="text" name="name" value="{{student.name}}"><br><br>
-        Grade: <input type="number" name="grade" value="{{student.grade}}"><br><br>
-        Section: <input type="text" name="section" value="{{student.section}}"><br><br>
+        Name:<br>
+        <input type="text" name="name" value="{{student['name']}}"><br><br>
+
+        Grade:<br>
+        <input type="number" name="grade" value="{{student['grade']}}"><br><br>
+
+        Section:<br>
+        <input type="text" name="section" value="{{student['section']}}"><br><br>
 
         <button type="submit">Update</button>
     </form>
 
     <br>
-    <a href="/students">Back to List</a>
+    <a href="/students">Back</a>
     """
 
     return render_template_string(html, student=student)

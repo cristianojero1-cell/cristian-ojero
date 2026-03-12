@@ -5,41 +5,41 @@ app = Flask(__name__)
 # Sample student data
 student = {
     "name": "Cristian Ojero",
-    "grade": 10,
+    "grade": 11,
     "section": "Firebase"
 }
 
 # Home route
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
-    return "Welcome to my Flask API!"
+    return jsonify({
+        "message": "Welcome to my Flask API!"
+    })
 
 # Get student information
 @app.route('/student', methods=['GET'])
 def get_student():
-    return jsonify(student)
+    return jsonify(student), 200
 
 # Update student information
 @app.route('/student', methods=['POST'])
 def update_student():
+
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
     data = request.get_json()
 
-    if not data:
-        return jsonify({"error": "No data provided"}), 400
-
-    # Update fields if they exist in request
-    if "name" in data:
-        student["name"] = data["name"]
-    if "grade" in data:
-        student["grade"] = data["grade"]
-    if "section" in data:
-        student["section"] = data["section"]
+    # Update fields if provided
+    student["name"] = data.get("name", student["name"])
+    student["grade"] = data.get("grade", student["grade"])
+    student["section"] = data.get("section", student["section"])
 
     return jsonify({
         "message": "Student updated successfully",
         "student": student
-    })
+    }), 200
 
-# Run the app
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=True)

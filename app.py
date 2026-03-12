@@ -13,7 +13,7 @@ students = [
 def home():
     return redirect(url_for('list_students'))
 
-# View students
+# Show all students
 @app.route('/students')
 def list_students():
     html = """
@@ -25,15 +25,15 @@ def list_students():
     <ul>
     {% for s in students %}
         <li>
-        {{s["id"]}} - {{s["name"]}} (Grade: {{s["grade"]}}, Section: {{s["section"]}})
-        <a href="/edit_student/{{s['id']}}">Edit</a>
+            {{s["id"]}} - {{s["name"]}} (Grade: {{s["grade"]}}, Section: {{s["section"]}})
+            <a href="/edit_student/{{s['id']}}">Edit</a>
         </li>
     {% endfor %}
     </ul>
     """
     return render_template_string(html, students=students)
 
-# Add student form
+# Form to add a student
 @app.route('/add_student_form')
 def add_student_form():
     html = """
@@ -41,15 +41,15 @@ def add_student_form():
 
     <form action="/add_student" method="POST">
         Name:<br>
-        <input type="text" name="name"><br><br>
+        <input type="text" name="name" required><br><br>
 
         Grade:<br>
-        <input type="number" name="grade"><br><br>
+        <input type="number" name="grade" required><br><br>
 
         Section:<br>
-        <input type="text" name="section"><br><br>
+        <input type="text" name="section" required><br><br>
 
-        <button type="submit">Add</button>
+        <button type="submit">Add Student</button>
     </form>
 
     <br>
@@ -65,10 +65,8 @@ def add_student():
     grade = request.form.get("grade")
     section = request.form.get("section")
 
-    new_id = len(students) + 1
-
     new_student = {
-        "id": new_id,
+        "id": len(students) + 1,
         "name": name,
         "grade": int(grade),
         "section": section
@@ -85,7 +83,7 @@ def edit_student(id):
     student = next((s for s in students if s["id"] == id), None)
 
     if student is None:
-        return "Student not found"
+        return "Student not found", 404
 
     if request.method == "POST":
         student["name"] = request.form["name"]
